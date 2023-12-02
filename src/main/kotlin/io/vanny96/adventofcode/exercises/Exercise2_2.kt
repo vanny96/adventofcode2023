@@ -5,8 +5,6 @@ import io.vanny96.adventofcode.shared.GameSet
 import io.vanny96.adventofcode.util.textFromResource
 import kotlin.math.max
 
-private val limits = GameSet(blue = 14, red = 12, green = 13)
-
 fun main() {
     val exerciseData = textFromResource("inputs/exercise_2.txt") ?: return
     val result = exerciseData.lines()

@@ -22,13 +22,13 @@ fun main() {
 }
 
 private fun chainFirstAndLastDigit(input: String): Int {
-    val lookaheadRegex = "((?=one)|(?=two)|(?=three)|(?=four)|(?=five)|(?=six)|(?=seven)|(?=eight)|(?=nine)|\\d)".toRegex()
+    val digitAndLookaheadRegex = "((?=one)|(?=two)|(?=three)|(?=four)|(?=five)|(?=six)|(?=seven)|(?=eight)|(?=nine)|\\d)".toRegex()
     val numbersRegex = "(one|two|three|four|five|six|seven|eight|nine)".toRegex()
 
     fun getNumberFromLookAhead(matchResult: MatchResult) =
         numbersRegex.find(input.substring(matchResult.range.first))!!.value.let { digitParsing[it] }
 
-    val matches = lookaheadRegex.findAll(input).map { it.value.ifEmpty { getNumberFromLookAhead(it) } }
+    val matches = digitAndLookaheadRegex.findAll(input).map { it.value.ifEmpty { getNumberFromLookAhead(it) } }
 
     val firstDigit = matches.first()
     val lastDigit = matches.last()
