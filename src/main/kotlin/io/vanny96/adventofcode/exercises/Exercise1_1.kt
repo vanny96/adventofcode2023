@@ -1,6 +1,7 @@
 package io.vanny96.adventofcode.exercises
 
 import io.vanny96.adventofcode.util.textFromResource
+import kotlinx.coroutines.runBlocking
 
 fun main() {
     val exerciseData = textFromResource("inputs/exercise_1.txt") ?: return
