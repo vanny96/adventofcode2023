@@ -1,8 +1,10 @@
 package io.vanny96.adventofcode.shared
 
 
-
 data class Game4(val id: Int, val playerNumbers: Set<Int>, val winningNumbers: Set<Int>) {
+
+    val winningPlayerNumbers = playerNumbers.intersect(winningNumbers)
+
     companion object {
         fun fromGameInfo(info: String): Game4 {
             val (gameInfo, gameSetsInfo) = info.split(":").let { it[0] to it[1] }

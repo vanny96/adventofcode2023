@@ -8,7 +8,7 @@ fun main() {
     val exerciseData = textFromResource("inputs/exercise_4.txt") ?: return
     val result = exerciseData.lines()
         .map { Game4.fromGameInfo(it) }
-        .map { it.playerNumbers.intersect(it.winningNumbers) }
+        .map { it.winningPlayerNumbers }
         .sumOf { if (it.isEmpty()) 0 else 2.0.pow(it.size-1).toInt() }
 
     println(result)
