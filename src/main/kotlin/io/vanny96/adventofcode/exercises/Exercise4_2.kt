@@ -22,16 +22,17 @@ fun main() {
     println(result)
 }
 
-fun mergeCardMaps(gameId: Int, accumulationMap: Map<Int, Int>, cardResults: Map<Int, Int>): Map<Int, Int> {
+private fun mergeCardMaps(gameId: Int, accumulationMap: Map<Int, Int>, cardResults: Map<Int, Int>): Map<Int, Int> {
     val cardCopies = accumulationMap[gameId] ?: 0
     val modifiedMap = cardResults.map { it.key to it.value * (1 + cardCopies) }.toMap()
+
     return (accumulationMap.toList() + modifiedMap.toList())
         .groupBy({ it.first }, { it.second })
         .map { entryKey -> entryKey.key to entryKey.value.sum() }
         .toMap()
 }
 
-fun firstApproach() {
+private fun firstApproach() {
     val exerciseData = textFromResource("inputs/exercise_4.txt") ?: return
     val games = exerciseData.lines()
         .map { Game4.fromGameInfo(it) }
