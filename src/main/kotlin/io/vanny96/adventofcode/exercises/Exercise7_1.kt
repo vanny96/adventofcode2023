@@ -7,15 +7,15 @@ import io.vanny96.adventofcode.util.textFromResource
 
 fun main() {
     val exerciseData = textFromResource("inputs/exercise_7.txt") ?: return
-    val gamesByWinningPosition: Map<WinningPosition, List<CardGame>> = exerciseData.lines()
+    val games = exerciseData.lines()
         .map { lineToBet(it) }
         .map { WinningPosition.getFromCards(it.cards) to it }
-        .groupBy({ it.first }, { it.second })
 
-    val rankedGames: List<CardGame>  = gamesByWinningPosition
-        .entries
-        .sortedByDescending { it.key.ordinal }
-        .flatMap { it.value.sortedWith(Comparator.comparing({ it.cards }, handComparator)) }
+    val rankedGames = games
+        .sortedWith(
+            compareByDescending<Pair<WinningPosition, CardGame>> { it.first.ordinal }
+                .thenComparing({ it.second.cards }, handComparator)
+        ).map { it.second }
 
     val result = rankedGames
         .mapIndexed { index, game -> (index + 1) * game.bet }

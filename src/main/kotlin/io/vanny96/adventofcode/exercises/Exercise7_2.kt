@@ -6,15 +6,15 @@ import io.vanny96.adventofcode.util.textFromResource
 fun main() {
     val exerciseData = textFromResource("inputs/exercise_7.txt") ?: return
 
-    val gamesByWinningPosition: Map<WinningPosition, List<CardGame>> = exerciseData.lines()
+    val games : List<Pair<WinningPosition, CardGame>> = exerciseData.lines()
         .map { lineToBet(it) }
         .map { WinningPosition.getFromCards(it.cards.withoutJokers(), it.cards.jokers()) to it }
-        .groupBy({ it.first }, { it.second })
 
-    val rankedGames: List<CardGame> = gamesByWinningPosition
-        .entries
-        .sortedByDescending { it.key.ordinal }
-        .flatMap { it.value.sortedWith(Comparator.comparing({ it.cards }, handComparator)) }
+    val rankedGames : List<CardGame> = games
+        .sortedWith(
+            compareByDescending<Pair<WinningPosition, CardGame>> { it.first.ordinal }
+                .thenComparing({ it.second.cards }, handComparator)
+        ).map { it.second }
 
     val result = rankedGames
         .mapIndexed { index, game -> (index + 1) * game.bet }
@@ -43,7 +43,7 @@ private fun lineToBet(line: String): CardGame {
     return CardGame(cards, bet)
 }
 
-private fun List<Card>.withoutJokers() =  this.filterNot { it.isJoker }
+private fun List<Card>.withoutJokers() = this.filterNot { it.isJoker }
 
 private fun List<Card>.jokers() = this.count { it.isJoker }
 
