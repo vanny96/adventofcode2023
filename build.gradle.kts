@@ -8,6 +8,7 @@ plugins {
 dependencies {
     implementation(kotlin("stdlib-jdk8"))
     implementation("org.jetbrains.kotlinx", "kotlinx-coroutines-core", "1.7.3")
+    implementation("org.apache.commons", "commons-math3", "3.6.1")
 }
 
 sourceSets {
