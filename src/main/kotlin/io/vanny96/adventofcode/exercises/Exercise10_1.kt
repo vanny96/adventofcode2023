@@ -6,6 +6,7 @@ import io.vanny96.adventofcode.util.textFromResource
 import kotlin.math.max
 
 fun main() {
+    val start = System.nanoTime()
     val exerciseData = textFromResource("inputs/exercise_10.txt") ?: return
 
     val pipesMap = exerciseData.lines()
@@ -44,6 +45,7 @@ fun main() {
     }
 
     println(furthestDistance)
+    println("Part 1: ${System.nanoTime() - start} nanos")
 }
 
 private fun isIndexContainedInMap(

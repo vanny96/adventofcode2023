@@ -5,6 +5,7 @@ import io.vanny96.adventofcode.shared.Pipe
 import io.vanny96.adventofcode.util.textFromResource
 
 fun main() {
+    val start = System.nanoTime()
     val exerciseData = textFromResource("inputs/exercise_10.txt") ?: return
 
     val pipesMap = exerciseData.lines()
@@ -30,8 +31,8 @@ fun main() {
         while (positionsQueue.isNotEmpty()) {
             val currPosition = positionsQueue.removeFirst()
 
-            if(internalPoints.contains(currPosition)) continue
-            if(loopPositions.contains(currPosition)) continue
+            if (internalPoints.contains(currPosition)) continue
+            if (loopPositions.contains(currPosition)) continue
 
             internalPoints.add(currPosition)
 
@@ -42,9 +43,13 @@ fun main() {
     }
 
     println(internalPoints.size)
+    println("Part 2: ${System.nanoTime() - start} nanos")
 }
 
-private fun navigatePipes(pipesMap: List<List<Pipe>>, action: (Direction, Pipe, Pair<Int, Int>) -> Unit): Set<Pair<Int, Int>> {
+private fun navigatePipes(
+    pipesMap: List<List<Pipe>>,
+    action: (Direction, Pipe, Pair<Int, Int>) -> Unit
+): Set<Pair<Int, Int>> {
     val initialPosition = getInitialPosition(pipesMap)
 
     val positionsQueue = ArrayDeque<Pair<Int, Int>>()

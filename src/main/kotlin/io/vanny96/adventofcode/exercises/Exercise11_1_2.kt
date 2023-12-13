@@ -21,56 +21,25 @@ fun main() {
 
     val galaxiesCoordinates = map.flatMapIndexed { rowIndex, row ->
         List(row.size) { colIndex -> rowIndex to colIndex }
-            .filter { map[it.first][it.second] == '#' }
+            .filter { (row, col) -> map[row][col] == '#' }
+            .map { (row, col) ->
+                val rowsToAdd = emptyRows.filter { it < row }.size * 999999L
+                val colsToAdd = emptyCols.filter { it < col }.size * 999999L
+
+                row + rowsToAdd to col + colsToAdd
+            }
     }
 
     val galaxiesPermutations = galaxiesCoordinates.flatMapIndexed { index, galaxy ->
         galaxiesCoordinates.subList(index + 1, galaxiesCoordinates.size).map { galaxy to it }
     }
 
-    val resultPart1 = galaxiesPermutations
-        .map { (galaxyOne, galaxyTwo) -> adjustSize(galaxyOne, galaxyTwo, emptyRows, emptyCols, 2) }
-        .sumOf { (galaxyOne, galaxyTwo) -> calculateDistance(galaxyTwo, galaxyOne) }
+    val result = galaxiesPermutations.sumOf { (galaxyOne, galaxyTwo) -> calculateDistance(galaxyTwo, galaxyOne) }
 
-    val resultPart2 = galaxiesPermutations
-        .map { (galaxyOne, galaxyTwo) -> adjustSize(galaxyOne, galaxyTwo, emptyRows, emptyCols, 1000000) }
-        .sumOf { (galaxyOne, galaxyTwo) -> calculateDistance(galaxyTwo, galaxyOne) }
-
-    println(resultPart1)
-    println(resultPart2)
+    println(result)
 }
 
 private fun calculateDistance(
-    galaxyTwo: Pair<Int, Int>,
-    galaxyOne: Pair<Int, Int>
+    galaxyTwo: Pair<Long, Long>,
+    galaxyOne: Pair<Long, Long>
 ) = abs(galaxyTwo.first - galaxyOne.first) + abs(galaxyTwo.second - galaxyOne.second)
-
-private fun adjustSize(
-    galaxyOne: Pair<Int, Int>,
-    galaxyTwo: Pair<Int, Int>,
-    emptyRows: Set<Int>,
-    emptyCols: Set<Int>,
-    emptyRowModifier: Int
-): Pair<Pair<Int, Int>, Pair<Int, Int>> {
-    // Inserts empty rows
-    val rowsRange = min(galaxyOne.first, galaxyTwo.first)..max(galaxyOne.first, galaxyTwo.first)
-    val rowsModifier = emptyRows.filter { rowsRange.contains(it) }.size * (emptyRowModifier - 1)
-
-    val (rowAdjustedOne, rowAdjustedTwo) = if (galaxyOne.first > galaxyTwo.first) {
-        (galaxyOne.first + rowsModifier to galaxyOne.second) to galaxyTwo
-    } else {
-        galaxyOne to (galaxyTwo.first + rowsModifier to galaxyTwo.second)
-    }
-
-    // Insert empty cols
-    val colsRange = min(galaxyOne.second, galaxyTwo.second)..max(galaxyOne.second, galaxyTwo.second)
-    val colsModifier = emptyCols.filter { colsRange.contains(it) }.size * (emptyRowModifier - 1)
-
-    val (colAdjustedOne, colAdjustedTwo) = if (rowAdjustedOne.second > rowAdjustedTwo.second) {
-        (rowAdjustedOne.first to rowAdjustedOne.second + colsModifier) to rowAdjustedTwo
-    } else {
-        rowAdjustedOne to (rowAdjustedTwo.first to rowAdjustedTwo.second + colsModifier)
-    }
-
-    return colAdjustedOne to colAdjustedTwo
-}
