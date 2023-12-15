@@ -8,7 +8,7 @@ fun main() {
     val sizes = exerciseData.lines().size to exerciseData.lines().first().length
     val map = dataToColumns(exerciseData)
 
-    val tiltedMap = tiltMap(map, sizes, 1000000000)
+    val tiltedMap = spinMap(map, sizes, 1000000000)
 
     val result = calculateNorthWeight(tiltedMap, sizes)
 
@@ -22,7 +22,7 @@ private fun calculateNorthWeight(
     .filter { it.value == RockShape.Round }
     .sumOf { sizes.second - it.key.first }
 
-private fun tiltMap(
+private fun spinMap(
     map: Map<Pair<Int, Int>, RockShape>,
     sizes: Pair<Int, Int>,
     times: Int
@@ -33,7 +33,6 @@ private fun tiltMap(
     val cache = mutableMapOf<Map<Pair<Int, Int>, RockShape>, Map<Pair<Int, Int>, RockShape>>()
 
     repeat(times) { time ->
-        println("Processing $time Weight ${calculateNorthWeight(tiltedMap, sizes)}")
         val initialMap = tiltedMap
         cache[initialMap]?.let {
             var loopLength = 1
@@ -67,38 +66,58 @@ private fun dataToColumns(data: String): Map<Pair<Int, Int>, RockShape> = data.l
             .associate { it.first to it.second!! }
     }.reduce { acc, map -> acc + map }
 
+
+private fun tiltNorth(map: Map<Pair<Int, Int>, RockShape>, sizes: Pair<Int, Int>) =
+    tilt(map, 0, false, RocksOrientation.Col)
+
+
+private fun tiltSouth(map: Map<Pair<Int, Int>, RockShape>, sizes: Pair<Int, Int>) =
+    tilt(map, sizes.first - 1, true, RocksOrientation.Col)
+
+private fun tiltWest(map: Map<Pair<Int, Int>, RockShape>, sizes: Pair<Int, Int>) =
+    tilt(map, 0, false, RocksOrientation.Row)
+
+private fun tiltEast(map: Map<Pair<Int, Int>, RockShape>, sizes: Pair<Int, Int>) =
+    tilt(map, sizes.second - 1, true, RocksOrientation.Row)
+
 private fun tilt(
     map: Map<Pair<Int, Int>, RockShape>,
     floor: Int,
     reversed: Boolean,
-    pick: Test
+    groupingBy: RocksOrientation
 ): Map<Pair<Int, Int>, RockShape> {
-    val orientationModifier = if (reversed) -1 else 1
     return map.entries
-        .groupBy({ pick.groupingKey(it.key) }, { pick.orderKey(it.key) to it.value })
-        .map { rocksGrouped ->
-            val tiltedRocks: MutableList<Pair<Int, RockShape>> = mutableListOf()
-
-            rocksGrouped.value.sortedBy { it.first * orientationModifier }.map { rockCoordinatesPair ->
-                if (rockCoordinatesPair.second == RockShape.Cube) {
-                    tiltedRocks.add(rockCoordinatesPair)
-                } else {
-                    tiltedRocks.lastOrNull()?.let { lastItem ->
-                        tiltedRocks.add((lastItem.first + orientationModifier) to rockCoordinatesPair.second)
-                    } ?: tiltedRocks.add(floor to rockCoordinatesPair.second)
-                }
-            }
-
-            rocksGrouped.key to tiltedRocks
-        }
+        .groupBy({ groupingBy.groupingKey(it.key) }, { groupingBy.orderKey(it.key) to it.value })
+        .map { rocksGrouped -> rocksGrouped.key to tiltGroup(rocksGrouped.value, reversed, floor) }
         .map { rocksGrouped ->
             rocksGrouped.second
-                .associate { pick.pairWithValue(rocksGrouped.first, it.first) to it.second }
+                .associate { groupingBy.pairWithValue(rocksGrouped.first, it.first) to it.second }
         }
-        .reduce { acc, map -> acc + map }
+        .reduce { acc, groupedRocks -> acc + groupedRocks }
 }
 
-private enum class Test {
+private fun tiltGroup(
+    rocksGrouped: List<Pair<Int, RockShape>>,
+    reversed: Boolean,
+    floor: Int
+): List<Pair<Int, RockShape>> {
+    val orientationModifier = if (reversed) -1 else 1
+    val tiltedRocks: MutableList<Pair<Int, RockShape>> = mutableListOf()
+
+    rocksGrouped.sortedBy { it.first * orientationModifier }.map { rockCoordinatesPair ->
+        if (rockCoordinatesPair.second == RockShape.Cube) {
+            tiltedRocks.add(rockCoordinatesPair)
+        } else {
+            tiltedRocks.lastOrNull()?.let { lastItem ->
+                tiltedRocks.add((lastItem.first + orientationModifier) to rockCoordinatesPair.second)
+            } ?: tiltedRocks.add(floor to rockCoordinatesPair.second)
+        }
+    }
+
+    return tiltedRocks
+}
+
+private enum class RocksOrientation {
     Col, Row;
 
     fun groupingKey(key: Pair<Int, Int>) = when (this) {
@@ -116,92 +135,3 @@ private enum class Test {
         Row -> groupValue to orderValue
     }
 }
-
-private fun tiltNorth(map: Map<Pair<Int, Int>, RockShape>, sizes: Pair<Int, Int>): Map<Pair<Int, Int>, RockShape> {
-    return map.entries
-        .groupBy({ it.key.second }, { it.key.first to it.value })
-        .map { rocksByCol ->
-            val tiltedRocks: MutableList<Pair<Int, RockShape>> = mutableListOf()
-
-            rocksByCol.value.sortedBy { it.first }.map { rockCoordinatesPair ->
-                if (rockCoordinatesPair.second == RockShape.Cube) {
-                    tiltedRocks.add(rockCoordinatesPair)
-                } else {
-                    tiltedRocks.lastOrNull()?.let { lastItem ->
-                        tiltedRocks.add((lastItem.first + 1) to rockCoordinatesPair.second)
-                    } ?: tiltedRocks.add(0 to rockCoordinatesPair.second)
-                }
-            }
-
-            rocksByCol.key to tiltedRocks
-        }
-        .map { rocksByCol -> rocksByCol.second.associate { (it.first to rocksByCol.first) to it.second } }
-        .reduce { acc, map -> acc + map }
-}
-
-private fun tiltSouth(map: Map<Pair<Int, Int>, RockShape>, sizes: Pair<Int, Int>): Map<Pair<Int, Int>, RockShape> {
-    return map.entries
-        .groupBy({ it.key.second }, { it.key.first to it.value })
-        .map { rocksByCol ->
-            val tiltedRocks: MutableList<Pair<Int, RockShape>> = mutableListOf()
-
-            rocksByCol.value.sortedByDescending { it.first }.map { rockCoordinatesPair ->
-                if (rockCoordinatesPair.second == RockShape.Cube) {
-                    tiltedRocks.add(rockCoordinatesPair)
-                } else {
-                    tiltedRocks.lastOrNull()?.let { lastItem ->
-                        tiltedRocks.add((lastItem.first - 1) to rockCoordinatesPair.second)
-                    } ?: tiltedRocks.add(sizes.first - 1 to rockCoordinatesPair.second)
-                }
-            }
-
-            rocksByCol.key to tiltedRocks
-        }
-        .map { rocksByCol -> rocksByCol.second.associate { (it.first to rocksByCol.first) to it.second } }
-        .reduce { acc, map -> acc + map }
-}
-
-private fun tiltWest(map: Map<Pair<Int, Int>, RockShape>, sizes: Pair<Int, Int>): Map<Pair<Int, Int>, RockShape> {
-    return map.entries
-        .groupBy({ it.key.first }, { it.key.second to it.value })
-        .map { rocksByRow ->
-            val tiltedRocks: MutableList<Pair<Int, RockShape>> = mutableListOf()
-
-            rocksByRow.value.sortedBy { it.first }.map { rockCoordinatesPair ->
-                if (rockCoordinatesPair.second == RockShape.Cube) {
-                    tiltedRocks.add(rockCoordinatesPair)
-                } else {
-                    tiltedRocks.lastOrNull()?.let { lastItem ->
-                        tiltedRocks.add((lastItem.first + 1) to rockCoordinatesPair.second)
-                    } ?: tiltedRocks.add(0 to rockCoordinatesPair.second)
-                }
-            }
-
-            rocksByRow.key to tiltedRocks
-        }
-        .map { rocksByRow -> rocksByRow.second.associate { (rocksByRow.first to it.first) to it.second } }
-        .reduce { acc, map -> acc + map }
-}
-
-private fun tiltEast(map: Map<Pair<Int, Int>, RockShape>, sizes: Pair<Int, Int>): Map<Pair<Int, Int>, RockShape> {
-    return map.entries
-        .groupBy({ it.key.first }, { it.key.second to it.value })
-        .map { rocksByRow ->
-            val tiltedRocks: MutableList<Pair<Int, RockShape>> = mutableListOf()
-
-            rocksByRow.value.sortedByDescending { it.first }.map { rockCoordinatesPair ->
-                if (rockCoordinatesPair.second == RockShape.Cube) {
-                    tiltedRocks.add(rockCoordinatesPair)
-                } else {
-                    tiltedRocks.lastOrNull()?.let { lastItem ->
-                        tiltedRocks.add((lastItem.first - 1) to rockCoordinatesPair.second)
-                    } ?: tiltedRocks.add(sizes.second - 1 to rockCoordinatesPair.second)
-                }
-            }
-
-            rocksByRow.key to tiltedRocks
-        }
-        .map { rocksByRow -> rocksByRow.second.associate { (rocksByRow.first to it.first) to it.second } }
-        .reduce { acc, map -> acc + map }
-}
-
